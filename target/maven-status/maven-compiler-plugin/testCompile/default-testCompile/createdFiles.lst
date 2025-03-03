@@ -1,0 +1,4 @@
+com/gatcha/api/service/BattleServiceTest.class
+com/gatcha/api/service/AuthServiceTest.class
+com/gatcha/api/service/MonsterServiceTest.class
+com/gatcha/api/service/SummonServiceTest.class
