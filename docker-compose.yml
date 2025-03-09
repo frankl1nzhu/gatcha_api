@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./src/main/resources/data:/docker-entrypoint-initdb.d
+    environment:
+      - MONGO_INITDB_DATABASE=gatcha
+    networks:
+      - gatcha-network
+
+  gatcha-api:
+    build: .
+    container_name: gatcha-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_DATA_MONGODB_HOST=mongodb
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_DATABASE=gatcha
+    networks:
+      - gatcha-network
+
+networks:
+  gatcha-network:
+    driver: bridge
+
+volumes:
+  mongodb_data: 
