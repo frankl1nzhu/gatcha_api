@@ -187,7 +187,7 @@ public class Skill {
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/gatcha_api.git
+git clone https://github.com/frankl1nzhu/gatcha_api.git
 cd gatcha_api
 ```
 
