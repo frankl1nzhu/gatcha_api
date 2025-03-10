@@ -7,6 +7,7 @@ import com.gatcha.api.battle.model.BattleLog;
 import com.gatcha.api.battle.service.BattleService;
 import com.gatcha.api.monster.model.PlayerMonster;
 import com.gatcha.api.monster.service.MonsterService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,5 +65,34 @@ public class BattleController {
         // Validate token, but don't use the username
         authService.validateToken(token.replace("Bearer ", ""));
         return ResponseEntity.ok(battleService.getBattlesByMonsterId(monsterId));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<BattleLog>> getAllBattles(
+            @RequestHeader("Authorization") String token) {
+        try {
+            // 验证token
+            String username = authService.validateToken(token.replace("Bearer ", ""));
+            if (username == null) {
+                System.out.println("Invalid token for /battles/history endpoint");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            System.out.println("Getting all battles for user: " + username);
+
+            // 获取所有战斗记录
+            List<BattleLog> battles = battleService.getAllBattles();
+
+            // 按日期降序排序
+            battles.sort((a, b) -> b.getBattleDate().compareTo(a.getBattleDate()));
+
+            System.out.println("Found " + battles.size() + " battles");
+
+            return ResponseEntity.ok(battles);
+        } catch (Exception e) {
+            System.out.println("Error getting all battles: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

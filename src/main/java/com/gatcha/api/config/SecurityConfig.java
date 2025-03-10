@@ -19,6 +19,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/auth/login").permitAll()
+                .antMatchers("/api/summon/multi").permitAll()
                 .anyRequest().permitAll() // Simplified version, all requests are allowed, actually handled by our
                                           // custom authentication service
                 .and()

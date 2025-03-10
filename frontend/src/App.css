@@ -1,0 +1,110 @@
+.app-container {
+  min-height: 100vh;
+}
+
+.site-layout-content {
+  padding: 24px;
+  background: #fff;
+  min-height: 280px;
+}
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f0f2f5;
+}
+
+.login-form {
+  width: 350px;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.login-form-button {
+  width: 100%;
+}
+
+.monster-card {
+  width: 240px;
+  margin: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.monster-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.battle-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.battle-selection {
+  display: flex;
+  gap: 20px;
+}
+
+.battle-log {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.element-fire {
+  color: #f5222d;
+}
+
+.element-water {
+  color: #1890ff;
+}
+
+.element-earth {
+  color: #52c41a;
+}
+
+.element-wind {
+  color: #722ed1;
+}
+
+.element-light {
+  color: #faad14;
+}
+
+.element-dark {
+  color: #722ed1;
+} 

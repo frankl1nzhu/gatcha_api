@@ -7,6 +7,7 @@ import com.gatcha.api.battle.service.RoyalRumbleService;
 import com.gatcha.api.monster.model.PlayerMonster;
 import com.gatcha.api.monster.model.Skill;
 import com.gatcha.api.monster.service.MonsterService;
+import com.gatcha.api.player.service.PlayerService;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -24,15 +25,17 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
     private final MonsterService monsterService;
     private final BattleLogRepository battleLogRepository;
     private final MongoTemplate mongoTemplate;
+    private final PlayerService playerService;
 
     // Store the experience gained from the most recent royal rumble
     private final Map<String, Integer> rumbleExperienceGained = new HashMap<>();
 
     public RoyalRumbleServiceImpl(MonsterService monsterService, BattleLogRepository battleLogRepository,
-            MongoTemplate mongoTemplate) {
+            MongoTemplate mongoTemplate, PlayerService playerService) {
         this.monsterService = monsterService;
         this.battleLogRepository = battleLogRepository;
         this.mongoTemplate = mongoTemplate;
+        this.playerService = playerService;
     }
 
     @Override
@@ -45,11 +48,61 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
             throw new IllegalStateException("At least 3 monsters are required to start a Royal Rumble");
         }
 
+        // Select 3 random monsters for the royal rumble (if user has more than 3
+        // monsters)
+        List<PlayerMonster> selectedMonsters = new ArrayList<>(monsters);
+        if (selectedMonsters.size() > 3) {
+            Collections.shuffle(selectedMonsters);
+            selectedMonsters = selectedMonsters.subList(0, 3);
+        }
+
+        // Get the list of selected monster IDs
+        List<String> monsterIds = selectedMonsters.stream()
+                .map(PlayerMonster::getId)
+                .collect(Collectors.toList());
+
+        // Call the method with the monster ID list
+        return startRoyalRumble(username, monsterIds);
+    }
+
+    @Override
+    public RoyalRumbleResult startRoyalRumble(String username, List<String> monsterIds) {
+        System.out.println("Starting royal rumble for user: " + username + " with monster IDs: " + monsterIds);
+
+        // Validate monster count
+        if (monsterIds.size() < 3) {
+            throw new IllegalStateException("At least 3 monsters are required to start a Royal Rumble");
+        }
+
+        // Verify all monsters belong to the user
+        List<String> userMonsterIds = monsterService.getMonstersByUsername(username)
+                .stream()
+                .map(PlayerMonster::getId)
+                .collect(Collectors.toList());
+
+        for (String monsterId : monsterIds) {
+            if (!userMonsterIds.contains(monsterId)) {
+                throw new IllegalArgumentException("Monster " + monsterId + " does not belong to user " + username);
+            }
+        }
+
+        // Get details of selected monsters
+        List<PlayerMonster> selectedMonsters = new ArrayList<>();
+        for (String monsterId : monsterIds) {
+            try {
+                PlayerMonster monster = monsterService.getMonsterById(monsterId, username);
+                selectedMonsters.add(monster);
+            } catch (Exception e) {
+                System.out.println("Error getting monster " + monsterId + ": " + e.getMessage());
+                throw new IllegalArgumentException("Error getting monster " + monsterId, e);
+            }
+        }
+
         // Create royal rumble result
         RoyalRumbleResult result = new RoyalRumbleResult();
         result.setId(UUID.randomUUID().toString());
         result.setRumbleDate(new Date());
-        result.setParticipantIds(monsters.stream().map(PlayerMonster::getId).collect(Collectors.toList()));
+        result.setParticipantIds(monsterIds);
         result.setRounds(new ArrayList<>());
 
         // Copy monster attributes for battle
@@ -57,7 +110,7 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
         Map<String, Map<Integer, Integer>> monsterCooldowns = new HashMap<>();
 
         // Initialize monster HP and skill cooldowns
-        for (PlayerMonster monster : monsters) {
+        for (PlayerMonster monster : selectedMonsters) {
             monsterHp.put(monster.getId(), monster.getHp());
             monsterCooldowns.put(monster.getId(), initCooldowns(monster));
         }
@@ -76,6 +129,10 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
             RoyalRumbleResult.RumbleRound round = new RoyalRumbleResult.RumbleRound();
             round.setRoundNumber(roundNumber);
             round.setActions(new ArrayList<>());
+
+            // Add round start log
+            result.getBattleLog()
+                    .add("Round " + roundNumber + " begins, remaining monsters: " + aliveMonsterIds.size());
 
             // Randomly order monsters to determine attack sequence
             Collections.shuffle(aliveMonsterIds);
@@ -101,8 +158,12 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
                 String targetId = possibleTargets.get(new Random().nextInt(possibleTargets.size()));
 
                 // Get attacker and target monsters
-                PlayerMonster attacker = getMonsterById(monsters, attackerId);
-                PlayerMonster defender = getMonsterById(monsters, targetId);
+                PlayerMonster attacker = getMonsterById(selectedMonsters, attackerId);
+                PlayerMonster defender = getMonsterById(selectedMonsters, targetId);
+
+                // Add log for attacker selecting target
+                result.getBattleLog()
+                        .add(generateMonsterName(attacker) + " chooses to attack " + generateMonsterName(defender));
 
                 // Perform attack
                 int defenderHp = performAttack(attacker, defender, monsterHp.get(attackerId),
@@ -111,9 +172,25 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
                 // Update target HP
                 monsterHp.put(targetId, defenderHp);
 
+                // Get the last battle action
+                if (!round.getActions().isEmpty()) {
+                    BattleLog.BattleAction lastAction = round.getActions().get(round.getActions().size() - 1);
+
+                    // Add log for attack result
+                    String skillName = lastAction.getSkillNum() == 0 ? "Basic Attack"
+                            : "Skill " + lastAction.getSkillNum();
+                    result.getBattleLog().add(generateMonsterName(attacker) + " uses " + skillName +
+                            " on " + generateMonsterName(defender) + " dealing " +
+                            lastAction.getDamage() + " damage, " +
+                            generateMonsterName(defender) + " remaining HP: " +
+                            lastAction.getRemainingHp());
+                }
+
                 // If target dies, remove from alive list
                 if (defenderHp <= 0) {
                     aliveMonsterIds.remove(targetId);
+                    // Add log for monster defeat
+                    result.getBattleLog().add(generateMonsterName(defender) + " has been defeated!");
                 }
             }
 
@@ -127,16 +204,22 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
 
             // Add round to result
             result.getRounds().add(round);
+
+            // Add round end log
+            result.getBattleLog().add("Round " + roundNumber + " ends, remaining monsters: " + aliveMonsterIds.size());
         }
 
         // Set winner
         String winnerId = aliveMonsterIds.get(0);
-        PlayerMonster winner = getMonsterById(monsters, winnerId);
+        PlayerMonster winner = getMonsterById(selectedMonsters, winnerId);
         result.setWinner(winner);
+
+        // Add winner log
+        result.getBattleLog().add(generateMonsterName(winner) + " is the final victor!");
 
         // Calculate experience gained: base experience (50) + number of participating
         // monsters * 10
-        int expGained = 50 + (monsters.size() * 10);
+        int expGained = 50 + (selectedMonsters.size() * 10);
 
         // Add experience to the winning monster
         monsterService.addExperience(winnerId, username, expGained);
@@ -144,6 +227,13 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
         // Store experience gained from this royal rumble
         rumbleExperienceGained.put(result.getId(), expGained);
         result.setExperienceGained(expGained);
+
+        // Remove all losing monsters from player's collection
+        List<String> loserIds = new ArrayList<>(result.getParticipantIds());
+        loserIds.remove(winnerId); // Remove winner from the list
+        for (String loserId : loserIds) {
+            playerService.removeMonster(username, loserId);
+        }
 
         // Save royal rumble result to MongoDB (as a custom document)
         mongoTemplate.save(result, "royalRumbles");
@@ -169,6 +259,12 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
         }
 
         return 0;
+    }
+
+    @Override
+    public List<RoyalRumbleResult> getAllRumbles() {
+        // Get all royal rumble records from MongoDB
+        return mongoTemplate.findAll(RoyalRumbleResult.class, "royalRumbles");
     }
 
     /**
@@ -281,5 +377,12 @@ public class RoyalRumbleServiceImpl implements RoyalRumbleService {
         }
 
         return Math.max(0, defenderHp);
+    }
+
+    /**
+     * Generate a friendly name for the monster
+     */
+    private String generateMonsterName(PlayerMonster monster) {
+        return com.gatcha.api.utils.NameGenerator.generateName(monster.getId(), monster.getElement());
     }
 }

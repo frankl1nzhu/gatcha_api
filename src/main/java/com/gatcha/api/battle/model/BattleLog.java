@@ -19,6 +19,8 @@ public class BattleLog {
     private String id;
     private String monster1Id;
     private String monster2Id;
+    private String monster1Element;
+    private String monster2Element;
     private String winnerId;
     private Date battleDate;
     private List<BattleAction> actions = new ArrayList<>();

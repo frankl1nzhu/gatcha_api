@@ -1,28 +1,46 @@
 # Gatcha API
 
-A comprehensive Gatcha game API system built with Spring Boot and MongoDB, providing complete backend services including user authentication, monster summoning, battles, and more.
+A complete Gatcha game system, including Spring Boot backend and React frontend, providing user authentication, monster summoning, battles, Royal Rumble, and other features.
+
+## Contributor
+
+Yuzhe Zhu
 
 ## Features
 
-- User Authentication & Authorization (Token-based authentication system)
-- Player Management (Levels, Experience, Monster Collection)
-- Monster Management (Attributes, Skills, Upgrades)
-- Summoning System (Probability-based monster summoning)
-- Battle System (Automated battles with detailed logs)
-- Royal Rumble System (Multi-monster battle royale where the last monster standing wins)
+- User authentication and authorization (Token-based authentication system)
+- Player management (level, experience, monster collection)
+- Monster management (attributes, skills, upgrades)
+- Summoning system (probability-based monster summoning)
+- Battle system (automatic battles with detailed battle logs)
+- Royal Rumble system (multi-monster battle royale, last surviving monster wins)
+- Monster name generation system (generates unique names based on monster ID and element type)
 
 ## Technology Stack
+
+### Backend
 
 - Java 17
 - Spring Boot 2.7.5
 - Spring Security
 - Spring Data MongoDB
-- JWT Authentication
+- JWT authentication
 - Docker & Docker Compose
 - Maven
-- JUnit 5 & Mockito (Testing frameworks)
+- JUnit 5 & Mockito (testing frameworks)
+
+### Frontend
+
+- React
+- Ant Design (UI component library)
+- Axios (HTTP client)
+- TypeScript
+- Moment.js (date handling)
+- Nginx (static file serving)
 
 ## Project Structure
+
+### Backend Structure
 
 ```
 src/main/java/com/gatcha/api/
@@ -49,11 +67,36 @@ src/main/java/com/gatcha/api/
 │   ├── controller/        # Controllers
 │   ├── dto/               # Data Transfer Objects
 │   ├── service/           # Business logic
-└── summon/                # Summoning related
-    ├── controller/        # Controllers
-    ├── model/             # Entity models
-    ├── repository/        # Data access
-    └── service/           # Business logic
+├── summon/                # Summoning related
+│   ├── controller/        # Controllers
+│   ├── model/             # Entity models
+│   ├── repository/        # Data access
+│   └── service/           # Business logic
+└── utils/                 # Utility classes
+    └── NameGenerator.java # Monster name generator
+```
+
+### Frontend Structure
+
+```
+frontend/
+├── public/                # Static resources
+├── src/                   # Source code
+│   ├── components/        # Common components
+│   ├── pages/             # Page components
+│   │   ├── BattlePage.tsx         # Battle page
+│   │   ├── Dashboard.tsx          # Dashboard page
+│   │   ├── LoginPage.tsx          # Login page
+│   │   ├── PlayerPage.tsx         # Player page
+│   │   ├── RoyalRumblePage.tsx    # Royal Rumble page
+│   │   └── SummoningPage.tsx      # Summoning page
+│   ├── services/          # API services
+│   │   └── api.ts         # API calls
+│   ├── utils/             # Utility functions
+│   │   └── nameGenerator.ts # Monster name generator
+│   ├── App.tsx            # Application entry
+│   └── index.tsx          # Rendering entry
+└── package.json           # Dependency configuration
 ```
 
 ## Data Models
@@ -124,56 +167,347 @@ public class Skill {
 }
 ```
 
+### Battle Log Model
+
+```java
+public class BattleLog {
+    private String id;
+    private String monster1Id;
+    private String monster2Id;
+    private String monster1Element;
+    private String monster2Element;
+    private String winnerId;
+    private Date battleDate;
+    private List<BattleAction> actions;
+
+    public static class BattleAction {
+        private String monsterId;
+        private int skillNum;
+        private int damage;
+        private String targetId;
+        private int remainingHp;
+    }
+}
+```
+
+### Royal Rumble Result Model
+
+```java
+public class RoyalRumbleResult {
+    private String id;
+    private List<String> participantIds;
+    private PlayerMonster winner;
+    private Date rumbleDate;
+    private List<RumbleRound> rounds;
+    private int experienceGained;
+    private List<String> battleLog;
+
+    public static class RumbleRound {
+        private int roundNumber;
+        private List<BattleLog.BattleAction> actions;
+        private List<String> remainingMonsterIds;
+    }
+}
+```
+
 ## API Endpoints
 
 ### Authentication API
 
 - `POST /api/auth/login` - User login
+
   - Request body: `{"username": "user1", "password": "password1"}`
   - Response: `{"token": "base64_encoded_token"}`
+  - Example:
+    ```bash
+    curl -X POST -H "Content-Type: application/json" -d '{"username": "user1", "password": "password1"}' http://localhost/api/auth/login
+    ```
 - `POST /api/auth/validate` - Validate token
+
   - Request header: `Authorization: Bearer <token>`
   - Response: Username
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/auth/validate
+    ```
 
 ### Player API
 
 - `GET /api/player/profile` - Get player profile
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Player profile information
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/profile
+    ```
 - `GET /api/player/monsters` - Get player's monster list
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of monster IDs
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/monsters
+    ```
 - `GET /api/player/level` - Get player level
-- `POST /api/player/experience` - Add player experience
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Player level
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/level
+    ```
+- `POST /api/player/experience` - Increase player experience
+
+  - Request header: `Authorization: Bearer <token>`
   - Request body: `{"experience": 20}`
-- `POST /api/player/levelup` - Level up player
+  - Response: Updated player experience
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" -H "Content-Type: application/json" -d '{"experience": 20}' http://localhost/api/player/experience
+    ```
+- `POST /api/player/levelup` - Player level up
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Updated player level
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/levelup
+    ```
 - `POST /api/player/monsters/{monsterId}` - Add monster to player's collection
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Success message
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/monsters/67cf4798011d486bbc622a31
+    ```
 - `DELETE /api/player/monsters/{monsterId}` - Remove monster from player's collection
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Success message
+  - Example:
+    ```bash
+    curl -X DELETE -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/player/monsters/67cf4798011d486bbc622a31
+    ```
 
 ### Monster API
 
 - `GET /api/monsters` - Get all player's monsters
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of monster objects
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/monsters
+    ```
 - `GET /api/monsters/{id}` - Get specific monster details
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Monster details
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/monsters/67cf2fe98eb1b816c9ee079d
+    ```
 - `POST /api/monsters/{id}/experience` - Add experience to monster
+
+  - Request header: `Authorization: Bearer <token>`
   - Request body: `{"experience": 50}`
+  - Response: Updated monster with new experience
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" -H "Content-Type: application/json" -d '{"experience": 50}' http://localhost/api/monsters/67cf2fe98eb1b816c9ee079d/experience
+    ```
 - `POST /api/monsters/{id}/skill` - Upgrade monster skill
+
+  - Request header: `Authorization: Bearer <token>`
   - Request body: `{"skillNum": 1}`
+  - Response: Updated monster with upgraded skill
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" -H "Content-Type: application/json" -d '{"skillNum": 1}' http://localhost/api/monsters/67cf2fe98eb1b816c9ee079d/skill
+    ```
 
 ### Summoning API
 
 - `POST /api/summon` - Summon new monster
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Summoned monster details
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/summon
+    ```
+  - Example Response:
+    ```json
+    {
+      "id": "67cf4798011d486bbc622a31",
+      "username": "user1",
+      "templateId": "2",
+      "element": "wind",
+      "level": 1,
+      "experience": 0,
+      "hp": 1500,
+      "atk": 200,
+      "def": 450,
+      "vit": 80,
+      "skills": [
+        {
+          "num": 1,
+          "dmg": 200,
+          "ratio": {
+            "stat": "def",
+            "percent": 10.0
+          },
+          "cooldown": 0,
+          "level": 0,
+          "lvlMax": 4
+        },
+        ...
+      ],
+      "skillPoints": 3
+    }
+    ```
 - `GET /api/summon/history` - Get summoning history
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of summon log objects
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/summon/history
+    ```
 - `POST /api/summon/reprocess` - Reprocess failed summons
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Number of reprocessed summons
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/summon/reprocess
+    ```
 
 ### Battle API
 
-- `POST /api/battles` - Conduct a battle
+- `POST /api/battles` - Conduct battle
+
+  - Request header: `Authorization: Bearer <token>`
   - Request body: `{"monster1Id": "id1", "monster2Id": "id2"}`
   - Response: Contains battle log, winning monster info, and experience gained
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" -H "Content-Type: application/json" -d '{"monster1Id": "67cf26fdc194747fad2518df", "monster2Id": "67cf4798011d486bbc622a31"}' http://localhost/api/battles
+    ```
+  - Example Response:
+    ```json
+    {
+      "id": "67cf47a8011d486bbc622a32",
+      "monster1Id": "67cf26fdc194747fad2518df",
+      "monster2Id": "67cf4798011d486bbc622a31",
+      "monster1Element": "water",
+      "monster2Element": "wind",
+      "winnerId": "67cf4798011d486bbc622a31",
+      "battleDate": "2025-03-10T20:12:24.418+00:00",
+      "actions": [
+        {
+          "monsterId": "67cf26fdc194747fad2518df",
+          "skillNum": 1,
+          "damage": 137,
+          "targetId": "67cf4798011d486bbc622a31",
+          "remainingHp": 1363
+        },
+        ...
+      ],
+      "winner": {
+        "id": "67cf4798011d486bbc622a31",
+        "username": "user1",
+        "templateId": "2",
+        "element": "wind",
+        "level": 1,
+        "experience": 40,
+        "hp": 1500,
+        "atk": 200,
+        "def": 450,
+        "vit": 80,
+        "skills": [...]
+      }
+    }
+    ```
 - `GET /api/battles/{battleId}` - Get battle details
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Battle log details
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/battles/67cf47a8011d486bbc622a32
+    ```
 - `GET /api/battles/monster/{monsterId}` - Get monster's battle history
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of battle logs involving the monster
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/battles/monster/67cf26fdc194747fad2518df
+    ```
+- `GET /api/battles/history` - Get all battle history
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of all battle logs
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/battles/history
+    ```
 
 ### Royal Rumble API
 
-- `POST /api/royal-rumble` - Start a royal rumble battle
-  - Response: Contains round-by-round battle records, winning monster info, and experience gained
-- `GET /api/royal-rumble/experience/{rumbleId}` - Get experience gained from a specific royal rumble
+- `POST /api/royal-rumble` - Start Royal Rumble
+
+  - Request header: `Authorization: Bearer <token>`
+  - Request body: `{"monsterIds": ["id1", "id2", "id3", ...]}`
+  - Response: Contains round battle records, winning monster info, and experience gained
+  - Example:
+    ```bash
+    curl -X POST -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" -H "Content-Type: application/json" -d '{"monsterIds": ["67cf2752c194747fad2518e5", "67cf2fe98eb1b816c9ee079d", "67cf2fe98eb1b816c9ee079f"]}' http://localhost/api/royal-rumble
+    ```
+  - Example Response:
+    ```json
+    {
+      "id": "41da43b8-0cee-4675-aab5-5fee750ed26a",
+      "participantIds": ["67cf2752c194747fad2518e5", "67cf2fe98eb1b816c9ee079d", "67cf2fe98eb1b816c9ee079f"],
+      "winner": {
+        "id": "67cf2fe98eb1b816c9ee079d",
+        "username": "user1",
+        "templateId": "2",
+        "element": "wind",
+        "level": 1,
+        "experience": 0,
+        "hp": 1500,
+        "atk": 200,
+        "def": 450,
+        "vit": 80,
+        "skills": [...]
+      },
+      "rumbleDate": "2025-03-10T20:14:36.664+00:00",
+      "rounds": [...],
+      "experienceGained": 80,
+      "battleLog": [...]
+    }
+    ```
+- `GET /api/royal-rumble/experience/{rumbleId}` - Get experience gained from specific Royal Rumble
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Experience points gained
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/royal-rumble/experience/41da43b8-0cee-4675-aab5-5fee750ed26a
+    ```
+  - Example Response: `80`
+- `GET /api/royal-rumble` - Get all Royal Rumble history
+
+  - Request header: `Authorization: Bearer <token>`
+  - Response: Array of Royal Rumble results
+  - Example:
+    ```bash
+    curl -X GET -H "Authorization: Bearer dXNlcjEtMjAyNS8wMy8xMC0yMDoxMDoyMA==" http://localhost/api/royal-rumble
+    ```
 
 ## How to Run
 
@@ -197,7 +531,9 @@ cd gatcha_api
 docker-compose up -d
 ```
 
-3. The application will run on `http://localhost:8080`
+3. The application will run at:
+   - Frontend: `http://localhost`
+   - Backend API: `http://localhost/api`
 
 ### Initial Users
 
@@ -213,23 +549,23 @@ The MongoDB database contains the following collections:
 - `users` - User information
 - `authTokens` - Authentication tokens
 - `monsterTemplates` - Monster templates
-- `playerMonsters` - Monsters owned by players
+- `playerMonsters` - Player-owned monsters
 - `summonLogs` - Summoning records
 - `battleLogs` - Battle records
-- `royalRumbles` - Royal rumble records
+- `royalRumbles` - Royal Rumble records
 
 ## Testing
 
 ### Automated Testing
 
-The project includes comprehensive unit tests and integration tests using JUnit 5 and Mockito frameworks. Tests cover all major services and controllers:
+The project contains comprehensive unit tests and integration tests using JUnit 5 and Mockito frameworks. Tests cover all major services and controllers:
 
 - **AuthServiceTest** - Tests authentication service, including login and token validation
 - **MonsterServiceTest** - Tests monster service, including retrieving monsters, upgrading skills, and creating monsters
 - **PlayerServiceTest** - Tests player service, including profile retrieval, leveling up, and monster management
 - **SummonServiceTest** - Tests summoning service, including monster summoning and log processing
 - **BattleServiceTest** - Tests battle service, including battles and battle record retrieval
-- **RoyalRumbleServiceTest** - Tests royal rumble service, including starting rumbles and experience calculation
+- **RoyalRumbleServiceTest** - Tests Royal Rumble service, including starting rumbles and experience calculation
 - **AuthControllerIntegrationTest** - Tests authentication controller API endpoints
 
 Run unit tests:
@@ -248,107 +584,22 @@ Test coverage:
 
 - Service layer: 90%+
 - Controller layer: 80%+
-- Model layer: 70%+
 
 ### Manual Testing
 
-The project provides a test script `test-api.sh` that can be used to test all APIs:
+Manual testing has been performed on all API endpoints using curl commands and the frontend interface. The testing confirmed:
 
-```bash
-chmod +x test-api.sh
-./test-api.sh
-```
+- All API endpoints are accessible and return expected responses
+- Error handling works correctly for invalid inputs
+- Authentication and authorization are properly enforced
+- Data persistence works correctly across all operations
+- Frontend components correctly display data from the API
+- User interactions (battles, summons, etc.) produce expected results
 
-## Resolved Issues
+## Performance Considerations
 
-1. **ID Type Mismatch Issue**:
-
-   - Modified the MonsterTemplate entity class, changing the ID type from String to Integer
-   - Modified the MonsterTemplateRepository interface to use Integer as the ID type
-   - Modified the SummonServiceImpl class to perform appropriate type conversions when handling IDs
-   - Modified the MonsterService interface and implementation class, changing the createMonsterFromTemplate method parameter type from String to Integer
-2. **Insufficient Skill Points Issue**:
-
-   - Modified the MonsterServiceImpl class to add initial skill points when creating monsters
-3. **Testing Related Issues**:
-
-   - Fixed NullPointerException error in BattleServiceTest by correctly setting up Skill.Ratio objects
-   - Fixed addMonsterTooMany test in PlayerServiceTest by using Mockito's spy method to mock User.canAddMonster() method
-   - Fixed tests in AuthControllerIntegrationTest by adding CSRF protection and user authentication
-4. **Skill Upgrade Enhancement**:
-
-   - Optimized the skill upgrade mechanism to increase skill effectiveness after upgrades
-   - 10% base damage increase per level
-   - 5% attribute ratio bonus increase per level
-   - Cooldown time reduction by 1 point every 2 levels (minimum half of the original value)
-5. **Battle Experience Rewards**:
-
-   - Implemented functionality for monsters to gain experience after defeating other monsters
-   - Experience calculation formula: Base experience (20) + defeated monster level * 10
-   - Automatically adds experience to the winning monster after battle
-   - Battle API response includes information about experience gained
-6. **Royal Rumble System**:
-
-   - Implemented a multi-monster battle royale feature
-   - All monsters randomly use skills against another monster until only one remains
-   - The victorious monster receives substantial experience rewards: Base experience (50) + number of participating monsters * 10
-   - Detailed recording of the battle process for each round
-
-## Game Mechanics
-
-### Player Leveling
-
-Players start at level 1 and level up when they gain enough experience. After leveling up:
-
-- Experience resets to 0
-- Experience required for the next level increases by 10%
-- Maximum number of monsters that can be owned increases by 1
-
-### Monster Summoning
-
-The summoning system randomly generates monsters based on probability:
-
-- Each monster template has a different appearance probability (lootRate)
-- After successful summoning, the monster is added to the player's monster list
-- Newly summoned monsters start at level 1 with 3 skill points
-
-### Monster Leveling
-
-Monsters level up after gaining enough experience:
-
-- Attribute values (hp, atk, def, vit) increase after leveling up
-- Additional skill points are gained
-- Experience resets to 0
-- Monsters can gain experience through battles, winning rewards: Base experience (20) + defeated monster level * 10
-- Monsters can gain more experience through royal rumbles, winning rewards: Base experience (50) + number of participating monsters * 10
-
-### Skill Upgrading
-
-Skill points can be used to upgrade monster skills:
-
-- Each upgrade consumes 1 skill point
-- Skill level increases, not exceeding lvlMax
-- Skill damage increases (10% base damage increase per level)
-- Skill attribute ratio bonus increases (5% base ratio increase per level)
-- Skill cooldown time decreases (1 point reduction every 2 levels, minimum half of the original value)
-
-### Battle System
-
-Battles are automated and follow these rules:
-
-- Monsters with higher speed attack first
-- Monsters use skills in descending order of skill number (higher-level skills first)
-- Skills have cooldown times, and skills in cooldown cannot be used
-- Detailed battle process is recorded after the battle ends
-- Winning monsters receive experience rewards
-
-### Royal Rumble System
-
-Royal Rumble is a multi-monster battle royale following these rules:
-
-- At least 3 monsters are required to start a royal rumble
-- Each round, all surviving monsters randomly select a target (not themselves) to attack
-- Attack order is randomly determined each round
-- Monsters that die no longer participate in subsequent rounds
-- The last surviving monster wins and receives substantial experience rewards
-- Detailed battle process is recorded after the royal rumble ends, including attack actions and remaining monsters for each round
+- The application is designed to handle multiple concurrent users
+- MongoDB provides efficient data storage and retrieval
+- Docker containerization ensures consistent performance across environments
+- API responses are optimized to minimize data transfer
+- Frontend components use lazy loading to improve initial load time

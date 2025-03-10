@@ -4,5 +4,6 @@
 /Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/player/service/PlayerServiceTest.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/battle/service/BattleServiceTest.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/summon/service/SummonServiceTest.java
+/Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/battle/service/RoyalRumbleServiceTest.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/GatchaApiTestSuite.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/test/java/com/gatcha/api/config/TestConfig.java

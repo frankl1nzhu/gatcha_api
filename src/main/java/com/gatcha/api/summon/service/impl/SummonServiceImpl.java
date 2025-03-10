@@ -10,6 +10,7 @@ import com.gatcha.api.summon.repository.SummonLogRepository;
 import com.gatcha.api.summon.service.SummonService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -90,6 +91,59 @@ public class SummonServiceImpl implements SummonService {
     @Override
     public List<SummonLog> getSummonHistory(String username) {
         return summonLogRepository.findByUsername(username);
+    }
+
+    @Override
+    public List<PlayerMonster> summonMultiple(String username, int count) {
+        // Limit maximum summon count to 10
+        count = Math.min(count, 10);
+
+        System.out.println("Starting multiple summons for user " + username + ", requested count: " + count);
+
+        // Create a list to store summoned monsters
+        List<PlayerMonster> summonedMonsters = new ArrayList<>();
+
+        // Get player's current monster count and maximum monster count
+        int currentMonsterCount = playerService.getMonsters(username).size();
+        int maxMonsterCount = playerService.getProfile(username).getMaxMonsters();
+
+        // Calculate how many monsters can be summoned
+        int availableSlots = maxMonsterCount - currentMonsterCount;
+        int actualCount = Math.min(count, availableSlots);
+
+        System.out.println("User " + username + " current monster count: " + currentMonsterCount +
+                ", maximum monster count: " + maxMonsterCount +
+                ", available slots: " + availableSlots +
+                ", actual summon count: " + actualCount);
+
+        // If there are no available slots, throw an exception
+        if (actualCount <= 0) {
+            System.out.println("User " + username + " has reached the monster limit, cannot summon");
+            throw new RuntimeException(
+                    "You have reached your monster limit. Please level up or remove some monsters first");
+        }
+
+        // Perform multiple summons
+        for (int i = 0; i < actualCount; i++) {
+            try {
+                System.out.println("Performing summon " + (i + 1) + " for user " + username);
+                PlayerMonster monster = summon(username);
+                summonedMonsters.add(monster);
+                System.out.println("Summon " + (i + 1) + " successful, monster ID: " + monster.getId());
+            } catch (Exception e) {
+                // If summon fails, log the error but continue trying
+                System.out.println("Summon " + (i + 1) + " failed: " + e.getMessage());
+            }
+        }
+
+        // If no monsters were successfully summoned, throw an exception
+        if (summonedMonsters.isEmpty()) {
+            System.out.println("All summons failed for user " + username);
+            throw new RuntimeException("All summons failed, please try again later");
+        }
+
+        System.out.println("User " + username + " successfully summoned " + summonedMonsters.size() + " monsters");
+        return summonedMonsters;
     }
 
     @Override

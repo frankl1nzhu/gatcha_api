@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.gatcha.api.controller.AuthControllerIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.794 s - in com.gatcha.api.controller.AuthControllerIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.347 s - in com.gatcha.api.controller.AuthControllerIntegrationTest

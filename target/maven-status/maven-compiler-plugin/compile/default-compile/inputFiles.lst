@@ -35,6 +35,7 @@
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/monster/repository/MonsterTemplateRepository.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/monster/repository/PlayerMonsterRepository.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/monster/controller/MonsterController.java
+/Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/utils/NameGenerator.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/player/dto/ExperienceRequest.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/monster/dto/SkillUpgradeRequest.java
 /Users/yuzhezhu/CourIMT/gatcha_api/src/main/java/com/gatcha/api/summon/controller/SummonController.java

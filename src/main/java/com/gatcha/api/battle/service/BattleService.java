@@ -12,4 +12,6 @@ public interface BattleService {
     List<BattleLog> getBattlesByMonsterId(String monsterId);
 
     int getExperienceGained(String battleId);
+
+    List<BattleLog> getAllBattles();
 }

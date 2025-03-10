@@ -6,6 +6,7 @@ import com.gatcha.api.battle.service.BattleService;
 import com.gatcha.api.monster.model.PlayerMonster;
 import com.gatcha.api.monster.model.Skill;
 import com.gatcha.api.monster.service.MonsterService;
+import com.gatcha.api.player.service.PlayerService;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,12 +16,15 @@ public class BattleServiceImpl implements BattleService {
 
     private final BattleLogRepository battleLogRepository;
     private final MonsterService monsterService;
+    private final PlayerService playerService;
     // Store the experience gained from the most recent battle
     private final Map<String, Integer> battleExperienceGained = new HashMap<>();
 
-    public BattleServiceImpl(BattleLogRepository battleLogRepository, MonsterService monsterService) {
+    public BattleServiceImpl(BattleLogRepository battleLogRepository, MonsterService monsterService,
+            PlayerService playerService) {
         this.battleLogRepository = battleLogRepository;
         this.monsterService = monsterService;
+        this.playerService = playerService;
     }
 
     @Override
@@ -32,6 +36,8 @@ public class BattleServiceImpl implements BattleService {
         BattleLog battleLog = new BattleLog();
         battleLog.setMonster1Id(monster1Id);
         battleLog.setMonster2Id(monster2Id);
+        battleLog.setMonster1Element(monster1.getElement());
+        battleLog.setMonster2Element(monster2.getElement());
         battleLog.setBattleDate(new Date());
         battleLog.setActions(new ArrayList<>());
 
@@ -91,6 +97,10 @@ public class BattleServiceImpl implements BattleService {
         // Store the experience gained from this battle
         battleExperienceGained.put(savedBattleLog.getId(), expGained);
 
+        // Remove the losing monster from player's collection
+        String loserId = hp1 > 0 ? monster2Id : monster1Id;
+        playerService.removeMonster(username, loserId);
+
         return savedBattleLog;
     }
 
@@ -108,6 +118,11 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public int getExperienceGained(String battleId) {
         return battleExperienceGained.getOrDefault(battleId, 0);
+    }
+
+    @Override
+    public List<BattleLog> getAllBattles() {
+        return battleLogRepository.findAll();
     }
 
     private Map<Integer, Integer> initCooldowns(PlayerMonster monster) {

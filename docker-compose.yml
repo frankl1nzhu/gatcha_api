@@ -28,9 +28,19 @@ services:
     networks:
       - gatcha-network
 
+  gatcha-frontend:
+    build: ./frontend
+    container_name: gatcha-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gatcha-api
+    networks:
+      - gatcha-network
+
 networks:
   gatcha-network:
     driver: bridge
 
 volumes:
-  mongodb_data: 
+  mongodb_data:  

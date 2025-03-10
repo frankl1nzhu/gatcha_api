@@ -8,6 +8,8 @@ import java.util.List;
 public interface SummonService {
     PlayerMonster summon(String username);
 
+    List<PlayerMonster> summonMultiple(String username, int count);
+
     List<SummonLog> getSummonHistory(String username);
 
     void reprocessFailedSummons();

@@ -6,6 +6,7 @@ import com.gatcha.api.battle.service.impl.BattleServiceImpl;
 import com.gatcha.api.monster.model.PlayerMonster;
 import com.gatcha.api.monster.model.Skill;
 import com.gatcha.api.monster.service.MonsterService;
+import com.gatcha.api.player.service.PlayerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,9 @@ public class BattleServiceTest {
 
     @Mock
     private MonsterService monsterService;
+
+    @Mock
+    private PlayerService playerService;
 
     @InjectMocks
     private BattleServiceImpl battleService;
