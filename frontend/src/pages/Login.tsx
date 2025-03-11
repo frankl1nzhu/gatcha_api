@@ -117,7 +117,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           
           <div style={{ textAlign: 'center' }}>
             <p>Test Accounts:</p>
-            <p>Username: user1, Password: password1</p>
             <p>Username: user2, Password: password2</p>
           </div>
         </Form>

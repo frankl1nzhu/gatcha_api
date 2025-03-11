@@ -216,11 +216,12 @@ public class RoyalRumbleResult {
 
 - `POST /api/auth/login` - User login
 
-  - Request body: `{"username": "user1", "password": "password1"}`
+  - Request body: `{"username": "user2", "password": "password2"}`
   - Response: `{"token": "base64_encoded_token"}`
   - Example:
+
     ```bash
-    curl -X POST -H "Content-Type: application/json" -d '{"username": "user1", "password": "password1"}' http://localhost/api/auth/login
+    curl -X POST -H "Content-Type: application/json" -d '{"username": "user2", "password": "password2"}' http://localhost/api/auth/login
     ```
 - `POST /api/auth/validate` - Validate token
 
@@ -342,7 +343,7 @@ public class RoyalRumbleResult {
     ```json
     {
       "id": "67cf4798011d486bbc622a31",
-      "username": "user1",
+      "username": "user2",
       "templateId": "2",
       "element": "wind",
       "level": 1,
@@ -418,7 +419,7 @@ public class RoyalRumbleResult {
       ],
       "winner": {
         "id": "67cf4798011d486bbc622a31",
-        "username": "user1",
+        "username": "user2",
         "templateId": "2",
         "element": "wind",
         "level": 1,
@@ -474,7 +475,7 @@ public class RoyalRumbleResult {
       "participantIds": ["67cf2752c194747fad2518e5", "67cf2fe98eb1b816c9ee079d", "67cf2fe98eb1b816c9ee079f"],
       "winner": {
         "id": "67cf2fe98eb1b816c9ee079d",
-        "username": "user1",
+        "username": "user2",
         "templateId": "2",
         "element": "wind",
         "level": 1,
@@ -537,9 +538,8 @@ docker-compose up -d
 
 ### Initial Users
 
-The system comes with two test users:
+The system comes with a test user:
 
-- Username: `user1`, Password: `password1`
 - Username: `user2`, Password: `password2`
 
 ## Database
