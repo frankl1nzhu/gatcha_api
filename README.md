@@ -526,9 +526,22 @@ git clone https://github.com/frankl1nzhu/gatcha_api.git
 cd gatcha_api
 ```
 
-2. Start the application using Docker Compose:
+2. Build backend target
+
+   ```bash
+   mvn clean install
+   ```
+3. Build frontend
+
+   ```bash
+   cd frontend
+   npm install
+   npm run build
+   ```
+4. Start the application using Docker Compose:
 
 ```bash
+cd ..
 docker-compose up -d
 ```
 
