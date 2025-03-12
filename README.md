@@ -528,16 +528,16 @@ cd gatcha_api
 
 2. Build backend target
 
-   ```bash
-   mvn clean install
-   ```
+```bash
+mvn clean install
+```
 3. Build frontend
 
-   ```bash
-   cd frontend
-   npm install
-   npm run build
-   ```
+```bash
+cd frontend
+npm install
+npm run build
+```
 4. Start the application using Docker Compose:
 
 ```bash
